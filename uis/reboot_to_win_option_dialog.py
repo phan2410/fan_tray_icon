@@ -2,7 +2,7 @@ from PySide2 import QtCore
 from PySide2.QtCore import Qt
 from PySide2.QtWidgets import QDialog, QSizePolicy, QPushButton, QLabel, QMessageBox
 
-from utils import run_shell_command, notify_info, notify_error, is_sudo
+from utils import run_shell_command, notify_info, notify_error, is_sudo, confirm_okcancel
 
 
 class RebootToWinOptionDialog(object):
@@ -72,17 +72,12 @@ class RebootToWinOptionDialog(object):
 
     def _restart_now_handler(self):
         if self._schedule_reboot_to_win().returncode == 0:
-            msg_box = QMessageBox(
-                QMessageBox.Icon.Warning,
-                "Confirmation Required",
-                "Please save your current works before continuing to restart the system !!!",
-                buttons=QMessageBox.Ok | QMessageBox.Cancel,
-                flags=Qt.SubWindow | Qt.Popup | Qt.WA_DeleteOnClose
+            _choice = confirm_okcancel(
+                icon=QMessageBox.Icon.Warning,
+                title="Confirmation Required",
+                message="Please save your current works before continuing to restart the system !!!",
+                button_to_text={QMessageBox.Ok: "Continue"}
             )
-            msg_box.setButtonText(QMessageBox.Ok, "Continue")
-            msg_box.setEscapeButton(QMessageBox.Cancel)
-            msg_box.setDefaultButton(QMessageBox.Cancel)
-            _choice = msg_box.exec_()
 
             if _choice == QMessageBox.Ok:
                 run_shell_command(
@@ -120,4 +115,3 @@ if __name__ == "__main__":
     )
     _dialog.dialog.finished.connect(sys.exit)
     _dialog.exec_()
-    app.exec_()

@@ -1,12 +1,11 @@
 import os
 import sys
-from functools import partial
 
 from PySide2.QtGui import QIcon
-from PySide2.QtWidgets import QApplication, QWidget, QSystemTrayIcon, QMenu, QAction
+from PySide2.QtWidgets import QApplication, QWidget, QSystemTrayIcon, QMenu, QAction, QMessageBox
 
 from uis.reboot_to_win_option_dialog import RebootToWinOptionDialog
-from utils import run_shell_command, is_sudo, center_widget, ask_for_password, notify_error
+from utils import run_shell_command, is_sudo, center_widget, ask_for_password, notify_error, confirm_okcancel
 
 OS_NAME = os.uname().sysname.lower()
 PARENT_DIR = os.path.dirname(__file__)
@@ -39,9 +38,7 @@ class FanTrayIcon(QSystemTrayIcon):
 
             hibernate = _system_menu.addAction("Hibernate")
             hibernate.setIcon(QIcon(os.path.join(ICON_DIR, "hibernate_icon.png")))
-            hibernate.triggered.connect(
-                partial(run_shell_command, 'xdg-screensaver lock && systemctl hibernate')
-            )
+            hibernate.triggered.connect(self._hibernate)
 
         if len(_system_menu.children()) > 1:
             menu.addMenu(_system_menu)
@@ -94,6 +91,13 @@ class FanTrayIcon(QSystemTrayIcon):
         _dialog = RebootToWinOptionDialog(sudo_password=pw, check=False)
         _dialog.exec_()
 
+    @staticmethod
+    def _hibernate():
+        assert OS_NAME == 'linux', 'Invalid OS'
+
+        _choice = confirm_okcancel(message="The system will hibernate now ...")
+        if _choice == QMessageBox.Ok:
+            run_shell_command('xdg-screensaver lock && systemctl hibernate')
 
 def main():
     app = QApplication(sys.argv)

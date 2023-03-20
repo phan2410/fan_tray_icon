@@ -68,10 +68,33 @@ def notify_error(message='Unknown failure. Please contact the developer !!!', ti
     return notify(message, title=title, icon=QMessageBox.Icon.Critical)
 
 
+def confirm_okcancel(
+    message="Are you sure?",
+    title="Confirmation Required",
+    icon=QMessageBox.Icon.Question,
+    button_to_text=None
+):
+    msg_box = QMessageBox(
+        icon,
+        title,
+        message,
+        buttons=QMessageBox.Ok | QMessageBox.Cancel,
+        flags=Qt.SubWindow | Qt.Popup | Qt.WA_DeleteOnClose
+    )
+    msg_box.setEscapeButton(QMessageBox.Cancel)
+    msg_box.setDefaultButton(QMessageBox.Cancel)
+
+    if isinstance(button_to_text, dict):
+        for btn, txt in button_to_text.items():
+            msg_box.setButtonText(btn, txt)
+
+    return msg_box.exec_()
+
+
 if __name__ == "__main__":
     import sys
 
     app = QApplication(sys.argv)
     choice = notify_error()
     print(choice)
-    app.exec_()
+    sys.exit()
